@@ -1,2 +1,2 @@
-# igreja.031
-Sistema de gestão para Igreja 
+# igreja-0.31
+Igreja online em cursor

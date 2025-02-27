@@ -16,7 +16,7 @@ DB_PASS="igreja_pass"
 PHP_VERSION="8.2"
 POSTGRES_VERSION="14"
 WORKSPACE_DIR=$(pwd)
-PHP_EXTENSIONS="php$PHP_VERSION-cli php$PHP_VERSION-common php$PHP_VERSION-curl php$PHP_VERSION-mbstring php$PHP_VERSION-pgsql php$PHP_VERSION-xml php$PHP_VERSION-zip php$PHP_VERSION-bcmath php$PHP_VERSION-intl php$PHP_VERSION-gd php$PHP_VERSION-fpm"
+PHP_EXTENSIONS="php$PHP_VERSION-cli php$PHP_VERSION-common php$PHP_VERSION-curl php$PHP_VERSION-mbstring php$PHP_VERSION-pgsql php$PHP_VERSION-xml php$PHP_VERSION-zip php$PHP_VERSION-bcmath php$PHP_VERSION-intl php$PHP_VERSION-gd php$PHP_VERSION-fpm php$PHP_VERSION-dom php$PHP_VERSION-simplexml"
 
 # Função para log
 log() {
@@ -569,10 +569,80 @@ check_laravel_project() {
     
     # Verifica se o arquivo composer.json existe
     if [ ! -f "composer.json" ]; then
-        warning "Arquivo composer.json não encontrado. Criando novo projeto Laravel..."
+        warning "Arquivo composer.json não encontrado. Criando arquivo inicial..."
         
-        # Cria novo projeto Laravel
-        composer create-project --prefer-dist laravel/laravel .
+        # Cria composer.json inicial
+        cat > composer.json << 'EOF'
+{
+    "name": "igreja/sistema",
+    "type": "project",
+    "description": "Sistema de Gestão para Igrejas",
+    "keywords": ["igreja", "gestao", "laravel"],
+    "license": "proprietary",
+    "require": {
+        "php": "^8.2",
+        "guzzlehttp/guzzle": "^7.2",
+        "laravel/framework": "^10.10",
+        "laravel/sanctum": "^3.3",
+        "laravel/tinker": "^2.8"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.9.1",
+        "laravel/pint": "^1.0",
+        "laravel/sail": "^1.18",
+        "mockery/mockery": "^1.4.4",
+        "nunomaduro/collision": "^7.0",
+        "phpunit/phpunit": "^10.1",
+        "spatie/laravel-ignition": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
+EOF
+        
+        # Instala dependências via Composer
+        composer install
         
         if [ $? -ne 0 ]; then
             error "Falha ao criar projeto Laravel. Verifique se o Composer está instalado."
